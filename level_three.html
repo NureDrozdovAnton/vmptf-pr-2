@@ -177,6 +177,10 @@
                 return text.replace(regex, `<mark>$1</mark>`)
             }
 
+            function preserveTasks() {
+                localStorage.setItem("tasks", JSON.stringify(tasks))
+            }
+
             function render() {
                 const board = document.getElementById("board")
                 const search = document
@@ -216,8 +220,6 @@
 
                 document.getElementById("pageInfo").textContent =
                     `Page ${currentPage} / ${totalPages || 1}`
-
-                localStorage.setItem("tasks", JSON.stringify(tasks))
             }
 
             function addTask() {
@@ -232,6 +234,7 @@
                 if (!title) return
 
                 tasks.push({ title, desc, tags })
+                preserveTasks()
 
                 document.getElementById("title").value = ""
                 document.getElementById("desc").value = ""
@@ -242,6 +245,7 @@
 
             function deleteTask(index) {
                 tasks.splice(index, 1)
+                preserveTasks()
                 render()
             }
 
