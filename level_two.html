@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="uk">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Practice #2 Level Two</title>
+        <style>
+            * {
+                font-family: Arial, sans-serif;
+            }
+
+            .json-check {
+                border: 1px solid #ccc;
+                padding: 10px;
+                margin-bottom: 15px;
+                background-color: #f9f9f9;
+            }
+
+            pre {
+                background-color: #eee;
+                padding: 10px;
+                overflow-x: auto;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>JSON validator</h1>
+
+        <script>
+            const jsonText = `{
+            "name": "Stepan",
+            "age": 30,
+            "city": "Kyiv"
+}`
+
+            const objectText = `{
+            name: "Vitaly",
+            age: 17,
+            city: "Lviv"
+}`
+
+            const stringText = "This is just a string, not JSON."
+
+            function checkJSON(text, variableName) {
+                const p = document.createElement("p")
+
+                p.classList.add("json-check")
+
+                try {
+                    JSON.parse(text)
+
+                    const pre = document.createElement("pre")
+                    pre.textContent = text
+
+                    const varSpan = document.createElement("span")
+                    varSpan.textContent = variableName
+
+                    varSpan.style.color = "blue"
+                    varSpan.style.textDecoration = "underline"
+                    varSpan.style.cursor = "pointer"
+
+                    varSpan.title = `Variable: ${variableName}\nContent:\n${text}`
+
+                    p.appendChild(varSpan)
+                    p.append(` is JSON`)
+                    p.appendChild(pre)
+                } catch (error) {
+                    const pre = document.createElement("pre")
+                    pre.textContent = text
+
+                    const varSpan = document.createElement("span")
+                    varSpan.textContent = variableName
+
+                    varSpan.style.color = "blue"
+                    varSpan.style.textDecoration = "underline"
+                    varSpan.style.cursor = "pointer"
+
+                    varSpan.title = `Variable: ${variableName}\nContent:\n${text}`
+
+                    p.appendChild(varSpan)
+                    p.append(` is NOT JSON`)
+                    p.appendChild(pre)
+                }
+
+                document.body.appendChild(p)
+            }
+
+            checkJSON(jsonText, "jsonText")
+            checkJSON(objectText, "objectText")
+            checkJSON(stringText, "stringText")
+        </script>
+    </body>
+</html>

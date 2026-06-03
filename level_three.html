@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="uk">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Task Board</title>
+
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                background: #f4f6f8;
+                margin: 0;
+                padding: 20px;
+            }
+
+            h1 {
+                text-align: center;
+            }
+
+            .container {
+                width: 90%;
+                margin: 0 auto;
+            }
+
+            .form,
+            .filters {
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+                max-width: 700px;
+                margin: 15px auto;
+            }
+
+            input,
+            textarea,
+            select {
+                padding: 10px;
+                font-size: 14px;
+                border-radius: 16px;
+                border: 1px solid #ccc;
+            }
+
+            textarea {
+                resize: none;
+            }
+
+            button {
+                padding: 10px;
+                background: #2d6cdf;
+                color: white;
+                border: none;
+                cursor: pointer;
+                border-radius: 16px;
+            }
+
+            button:hover {
+                background: #1f52b5;
+            }
+
+            .board {
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 10px;
+            }
+
+            .card {
+                width: 40%;
+                background: white;
+                padding: 16px;
+                border-radius: 32px;
+                box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+            }
+
+            .tags {
+                margin-top: 10px;
+            }
+
+            .tag {
+                display: inline-block;
+                background: #dbeafe;
+                color: #1e40af;
+                padding: 3px 8px;
+                border-radius: 12px;
+                font-size: 12px;
+                margin-right: 5px;
+            }
+
+            .delete {
+                margin-top: 10px;
+                background: red;
+            }
+
+            .delete:hover {
+                background: darkred;
+            }
+
+            .pagination {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 10px;
+                margin: 20px;
+            }
+
+            mark {
+                background: #cfbe24;
+            }
+        </style>
+    </head>
+
+    <body>
+        <div class="container">
+            <h1>Task Board</h1>
+
+            <div class="form">
+                <input id="title" placeholder="Task title" />
+                <textarea id="desc" placeholder="Task description"></textarea>
+                <input
+                    id="tags"
+                    placeholder="Tags (comma-separated: js, html)" />
+                <button onclick="addTask()">Add task</button>
+            </div>
+
+            <div class="filters">
+                <input
+                    id="search"
+                    placeholder="Search by title"
+                    oninput="render()" />
+                <input
+                    id="tagFilter"
+                    placeholder="Filter by tag"
+                    oninput="render()" />
+
+                <select id="perPage" onchange="changePerPage()">
+                    <option value="2">2 per page</option>
+                    <option value="4" selected>4 per page</option>
+                    <option value="6">6 per page</option>
+                </select>
+            </div>
+
+            <div id="board" class="board"></div>
+
+            <div class="pagination">
+                <button onclick="prevPage()">Prev</button>
+                <span id="pageInfo"></span>
+                <button onclick="nextPage()">Next</button>
+            </div>
+        </div>
+
+        <script>
+            let tasks = JSON.parse(localStorage.getItem("tasks")) || []
+
+            let currentPage = 1
+            let perPage = 4
+
+            function getFilteredTasks() {
+                const search = document
+                    .getElementById("search")
+                    .value.toLowerCase()
+                const tagFilter = document
+                    .getElementById("tagFilter")
+                    .value.toLowerCase()
+
+                return tasks.filter((task) => {
+                    const matchTitle = task.title.toLowerCase().includes(search)
+                    const matchTag =
+                        tagFilter === "" ||
+                        task.tags.some((t) => t.toLowerCase() === tagFilter)
+                    return matchTitle && matchTag
+                })
+            }
+
+            function getHighlightedText(text, highlight) {
+                if (!highlight) return text
+                const regex = new RegExp(`(${highlight})`, "gi")
+                return text.replace(regex, `<mark>$1</mark>`)
+            }
+
+            function render() {
+                const board = document.getElementById("board")
+                const search = document
+                    .getElementById("search")
+                    .value.trim()
+                    .toLowerCase()
+                board.innerHTML = ""
+
+                const filtered = getFilteredTasks()
+
+                const totalPages = Math.ceil(filtered.length / perPage)
+
+                if (currentPage > totalPages) currentPage = 1
+
+                const start = (currentPage - 1) * perPage
+                const end = start + perPage
+
+                const pageItems = filtered.slice(start, end)
+
+                pageItems.forEach((task, index) => {
+                    const card = document.createElement("div")
+                    card.className = "card"
+
+                    const tagsHTML = task.tags
+                        .map((tag) => `<span class="tag">#${tag}</span>`)
+                        .join(" ")
+
+                    card.innerHTML = `
+                <h3>${getHighlightedText(task.title, search)}</h3>
+                <p>${task.desc}</p>
+                <div class="tags">${tagsHTML}</div>
+                <button class="delete" onclick="deleteTask(${tasks.indexOf(task)})">Delete</button>
+            `
+
+                    board.appendChild(card)
+                })
+
+                document.getElementById("pageInfo").textContent =
+                    `Page ${currentPage} / ${totalPages || 1}`
+
+                localStorage.setItem("tasks", JSON.stringify(tasks))
+            }
+
+            function addTask() {
+                const title = document.getElementById("title").value
+                const desc = document.getElementById("desc").value
+                const tags = document
+                    .getElementById("tags")
+                    .value.split(",")
+                    .map((t) => t.trim())
+                    .filter(Boolean)
+
+                if (!title) return
+
+                tasks.push({ title, desc, tags })
+
+                document.getElementById("title").value = ""
+                document.getElementById("desc").value = ""
+                document.getElementById("tags").value = ""
+
+                render()
+            }
+
+            function deleteTask(index) {
+                tasks.splice(index, 1)
+                render()
+            }
+
+            function nextPage() {
+                currentPage++
+                render()
+            }
+
+            function prevPage() {
+                if (currentPage > 1) currentPage--
+                else
+                    currentPage = Math.ceil(getFilteredTasks().length / perPage)
+                render()
+            }
+
+            function changePerPage() {
+                perPage = Number(document.getElementById("perPage").value)
+                currentPage = 1
+                render()
+            }
+
+            render()
+        </script>
+    </body>
+</html>
